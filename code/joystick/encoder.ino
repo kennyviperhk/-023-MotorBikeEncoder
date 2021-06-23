@@ -4,120 +4,131 @@ void encoderSetup() {
 
 void encoderLoop() {
   sensorValue = analogRead(encoderPin);
-  sensorValueToDegree = map(sensorValue, 2, 1014, 0, 359.99);
+  sensorValueToDegree = mapfloat(sensorValue * 1.0, 2.0, 1014.0, 0.0, 359.99);
   float bufferDegree = 3;
   float buf = prevValue - sensorValueToDegree;
-  if (abs(buf) > bufferDegree && abs(buf) < selectedDegree) {
-
+  if (abs(buf) > bufferDegree) {
+    if (sensorValueToDegree > 240 || sensorValueToDegree < 120) {
+      isWithingChangingZone = true;
+    } else {
+      isWithingChangingZone = false;
+      isRound = false;
+    }
     if (buf < -bufferDegree) {
       isIncreasing = true;
-      if (prevValue > 240 && !isRound) {
+      relativeValue += bufferDegree;
+      if (prevValue > 240 && !isRound && isWithingChangingZone) {
         roundLargerThan360 ++;
         isRound = true;
       }
     }
-    else{
+    else {
       isIncreasing = false;
-      if (prevValue < 120 && roundLargerThan360 > 0  && !isRound) {
+      if (relativeValue < bufferDegree) {
+        relativeValue = 0;
+      } else {
+        relativeValue -= bufferDegree;
+      }
+      if (prevValue < 120 && roundLargerThan360 > 0  && !isRound && isWithingChangingZone) {
         roundLargerThan360 --;
         isRound = true;
       }
     }
-  prevValue = sensorValueToDegree;
-  } else {
-    isRound = false;
+    prevValue = sensorValueToDegree;
   }
 
+  if (relativeValue > totalDegree) {
+    totalDegree = relativeValue;
+  }
 
-  sensorValueToDegree += (roundLargerThan360 * 360);
-  if (sensorValueToDegree > totalDegree) {
-    totalDegree = sensorValueToDegree;
+  if (debugMode) {
+    Serial.print("relativeValue : ");
+    Serial.print(relativeValue);
+    Serial.print("\t");
+    Serial.print("totalDegree : ");
+    Serial.print(totalDegree);
   }
-  if (homeDegree > 0) {
-    sensorValueToDegree -= homeDegree;
-    if (sensorValueToDegree < 0) {
-      sensorValueToDegree = 0;
-    }
-  }
-  float fixedDegree = map(sensorValueToDegree, 0, totalDegree, 0, 359);
-  Gamepad.xAxis(levelMapping(round(fixedDegree)));
+
+  float fixedDegree = map(relativeValue, 0, totalDegree, 0, 359.99);
+  Gamepad.xAxis(levelMapping(fixedDegree));
   Gamepad.write();
-
-  Serial.print(sensorValueToDegree);
-  Serial.print("\t");
-  Serial.print(totalDegree);
-  Serial.print("\t");
-  Serial.print("isIncreasing : ");
-  Serial.print(isIncreasing);
-  Serial.print("\t");
-  Serial.println(roundLargerThan360);
 }
 
-int levelMapping(int degreeValue)
+int levelMapping(float degreeValue)
 {
   int levelValue;
 
-  leftMostLevel = totalDegree - selectedDegree / 2;
-  rightMostLevel = selectedDegree / 2;
-  leftLevel = leftMostLevel + (selectedDegree / 5);
+  leftMostLevel = 0;
+  rightMostLevel = selectedDegree;
+  leftLevel = selectedDegree / 5;
   rightLevel = rightMostLevel - (selectedDegree / 5);
-  middleLeftLevel = totalDegree - ((selectedDegree / 5) / 2);
-  middleRightLevel = ((selectedDegree / 5) / 2);
+  middleLeftLevel = leftLevel + (selectedDegree / 5);
+  middleRightLevel = rightLevel - (selectedDegree / 5);
 
-  if ( degreeValue > middleLeftLevel || degreeValue < middleRightLevel ) {
-    levelValue = 180;
-    int16_t degreeToJoystickValue = 0;
-    return degreeToJoystickValue;
+  if ( degreeValue >= leftMostLevel && degreeValue < leftLevel ) {
+    levelValue = 0;
+    int16_t degreeToJoystickValue = map(levelValue, 0, 360, -32768, 32767);
     if (debugMode) {
+      Serial.print("\t");
+      Serial.print("leftMostLevel");
+      Serial.print("\t");
+      Serial.print("JoyStickValue : ");
       Serial.println(levelValue);
     }
-  }
-  if ( degreeValue > middleRightLevel && degreeValue < rightLevel ) {
-    levelValue = 270;
-    int16_t degreeToJoystickValue = map(levelValue, 0, totalDegree, -32768, 32767);
     return degreeToJoystickValue;
-    if (debugMode) {
-      Serial.println(levelValue);
-    }
-  }
-  if ( degreeValue > rightLevel && degreeValue < rightMostLevel ) {
-    levelValue = totalDegree;
-    int16_t degreeToJoystickValue = map(levelValue, 0, totalDegree, -32768, 32767);
-    return degreeToJoystickValue;
-    if (debugMode) {
-      Serial.println(levelValue);
-    }
   }
   if ( degreeValue > leftLevel && degreeValue < middleLeftLevel ) {
     levelValue = 90;
-    int16_t degreeToJoystickValue = map(levelValue, 0, totalDegree, -32768, 32767);
-    return degreeToJoystickValue;
+    int16_t degreeToJoystickValue = map(levelValue, 0, 360, -32768, 32767);
     if (debugMode) {
+      Serial.print("\t");
+      Serial.print("leftLevel");
+      Serial.print("\t");
+      Serial.print("JoyStickValue : ");
       Serial.println(levelValue);
     }
-  }
-  if ( degreeValue > leftMostLevel && degreeValue < leftLevel ) {
-    levelValue = 0;
-    int16_t degreeToJoystickValue = map(levelValue, 0, totalDegree, -32768, 32767);
     return degreeToJoystickValue;
+  }
+  if ( degreeValue > middleLeftLevel && degreeValue < middleRightLevel ) {
+    levelValue = 180;
+    int16_t degreeToJoystickValue = 0;
     if (debugMode) {
+      Serial.print("\t");
+      Serial.print("middleLevel");
+      Serial.print("\t");
+      Serial.print("JoyStickValue : ");
       Serial.println(levelValue);
     }
-  }
-  if ( degreeValue > rightMostLevel && degreeValue < totalDegree / 2 ) {
-    levelValue = totalDegree;
-    int16_t degreeToJoystickValue = map(levelValue, 0, totalDegree, -32768, 32767);
     return degreeToJoystickValue;
+  }
+  if ( degreeValue > middleRightLevel && degreeValue < rightLevel ) {
+    levelValue = 270;
+    int16_t degreeToJoystickValue = map(levelValue, 0, 360, -32768, 32767);
     if (debugMode) {
+      Serial.print("\t");
+      Serial.print("rightLevel");
+      Serial.print("\t");
+      Serial.print("JoyStickValue : ");
       Serial.println(levelValue);
     }
-  }
-  if ( degreeValue > totalDegree / 2 && degreeValue < leftMostLevel ) {
-    levelValue = 0;
-    int16_t degreeToJoystickValue = map(levelValue, 0, totalDegree, -32768, 32767);
     return degreeToJoystickValue;
+  }
+  if ( degreeValue > rightLevel && degreeValue <= rightMostLevel ) {
+    levelValue = 360;
+    int16_t degreeToJoystickValue = map(levelValue, 0, 360, -32768, 32767);
     if (debugMode) {
+      Serial.print("\t");
+      Serial.print("rightMostLevel");
+      Serial.print("\t");
+      Serial.print("JoyStickValue : ");
       Serial.println(levelValue);
     }
+    return degreeToJoystickValue;
   }
+}
+
+
+float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
+{
+  return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
 }
