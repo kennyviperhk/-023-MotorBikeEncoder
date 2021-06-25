@@ -16,7 +16,7 @@ void encoderLoop() {
       isRound = false;
       }
     */
-    if (anti - clockwise) {
+    if (antiClockWise) {
       if (buf < -bufferDegree) {
         isIncreasing = true;
         relativeValue += bufferDegree;

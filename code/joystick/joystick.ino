@@ -2,7 +2,7 @@
 
 boolean debugMode = true;
 
-boolean anti-clockwise = true;
+boolean antiClockWise = true;
 bool isIncreasing = true;
 
 int trickerPin = A0;
