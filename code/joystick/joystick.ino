@@ -2,6 +2,7 @@
 
 boolean debugMode = true;
 
+boolean anti-clockwise = true;
 bool isIncreasing = true;
 
 int trickerPin = A0;
@@ -16,7 +17,7 @@ long interval = 50;
 float sensorValue;
 float sensorValueToDegree;
 int selectedDegree = 360;
-int totalDegree = 360;
+int totalDegree = 90;
 int homeDegree = 0;
 int prevValue = 0;
 int roundLargerThan360 = 0;

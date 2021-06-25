@@ -8,30 +8,63 @@ void encoderLoop() {
   float bufferDegree = 3;
   float buf = prevValue - sensorValueToDegree;
   if (abs(buf) > bufferDegree) {
-    if (sensorValueToDegree > 240 || sensorValueToDegree < 120) {
+    /*
+      if (sensorValueToDegree > 240 || sensorValueToDegree < 120) {
       isWithingChangingZone = true;
-    } else {
+      } else {
       isWithingChangingZone = false;
       isRound = false;
-    }
-    if (buf < -bufferDegree) {
-      isIncreasing = true;
-      relativeValue += bufferDegree;
-      if (prevValue > 240 && !isRound && isWithingChangingZone) {
-        roundLargerThan360 ++;
-        isRound = true;
       }
-    }
-    else {
-      isIncreasing = false;
-      if (relativeValue < bufferDegree) {
-        relativeValue = 0;
-      } else {
-        relativeValue -= bufferDegree;
+    */
+    if (anti - clockwise) {
+      if (buf < -bufferDegree) {
+        isIncreasing = true;
+        relativeValue += bufferDegree;
+        /*
+          if (prevValue > 240 && !isRound && isWithingChangingZone) {
+          roundLargerThan360 ++;
+          isRound = true;
+          }
+        */
       }
-      if (prevValue < 120 && roundLargerThan360 > 0  && !isRound && isWithingChangingZone) {
-        roundLargerThan360 --;
-        isRound = true;
+      else {
+        isIncreasing = false;
+        if (relativeValue < bufferDegree) {
+          relativeValue = 0;
+        } else {
+          relativeValue -= bufferDegree;
+        }
+        /*
+          if (prevValue < 120 && roundLargerThan360 > 0  && !isRound && isWithingChangingZone) {
+          roundLargerThan360 --;
+          isRound = true;
+          }
+        */
+      }
+    } else {
+      if (buf > -bufferDegree) {
+        isIncreasing = true;
+        relativeValue += bufferDegree;
+        /*
+          if (prevValue > 240 && !isRound && isWithingChangingZone) {
+          roundLargerThan360 ++;
+          isRound = true;
+          }
+        */
+      }
+      else {
+        isIncreasing = false;
+        if (relativeValue < bufferDegree) {
+          relativeValue = 0;
+        } else {
+          relativeValue -= bufferDegree;
+        }
+        /*
+          if (prevValue < 120 && roundLargerThan360 > 0  && !isRound && isWithingChangingZone) {
+          roundLargerThan360 --;
+          isRound = true;
+          }
+        */
       }
     }
     prevValue = sensorValueToDegree;
