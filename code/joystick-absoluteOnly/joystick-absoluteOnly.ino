@@ -12,6 +12,7 @@ boolean isHomeSet = false;
 boolean isTrigger = false;
 long currMillis;
 long prevMillis = 0;
+
 long interval = 50;
 
 float sensorValue;
